@@ -1,7 +1,7 @@
 /*******************************
- * 
+ *
  * This Class driver the village level dynamics of ND
- * 
+ *
  ******************************/
 import java.util.*;
 import org.apache.commons.math3.distribution.*;
@@ -10,27 +10,27 @@ public class Village {
 //	Create a holder for the village's flocks
 	private Flock[] vVillage;
 	private int nFlocks;
-/*	These variables all inherit from the population - 
-	they define the viruses and transmission parameters*/ 
+/*	These variables all inherit from the population -
+	they define the viruses and transmission parameters*/
 	private NDInfection ndv;
 	private double localTrans;
 //	At present, this is defined in the constructor
 	private double betweenFlockTrans;
-/*	As per the Population Class, 
+/*	As per the Population Class,
 	this is the birds available for sale and circulating ND viruses*/
 	private Vector marketPool;
 	private Vector ndViruses;
 	private Vector ndvPool;
 //	Counter for the model outputs
 	private int[] ndCompartments;
-	private int[] demogComps; 
-//	Define the vaccination parameters	
+	private int[] demogComps;
+//	Define the vaccination parameters
 	private NDInfection vaccine;
 	private int vaccDay;
 	private int nVaccinated;
 	private int vaccFreq;
 
-//	Overloaded constructor - defines a village with a set number of flocks	
+//	Overloaded constructor - defines a village with a set number of flocks
 	public Village(int nFlocks){
 		vVillage = new Flock[nFlocks];
 		for(int i = 0; i < nFlocks; i++){
@@ -40,8 +40,8 @@ public class Village {
 		this.betweenFlockTrans = 0.1;
 		this.vaccFreq = 121;
 	}
-	
-//	Overloaded constructor - defines a village with a sampled number of flocks - mean 50	
+
+//	Overloaded constructor - defines a village with a sampled number of flocks - mean 50
 	public Village(){
 		this.nFlocks = 0;
 		while(this.nFlocks == 0){
@@ -58,7 +58,7 @@ public class Village {
 		this.vaccFreq = 121;
 	}
 
-//	Overloaded constructor - defines a village with a sampled number of flocks - from a given mean	
+//	Overloaded constructor - defines a village with a sampled number of flocks - from a given mean
 	public Village(int flockN, double[] parameters){
 		this.nFlocks = 0;
 		while(this.nFlocks == 0){
@@ -74,8 +74,8 @@ public class Village {
 		this.betweenFlockTrans = 0.1;
 		this.vaccFreq = 121;
 	}
-	
-//	MEthod to force the trojan flock into the village
+
+//	MEthod to force the trojan flock into the village. The trojan flock is a pre-infected flock
 	public void insertTrojan(Flock trojan){
 		Flock[] replacement = new Flock[this.vVillage.length + 1];
 		for(int i = 0; i < this.nFlocks; i++){
@@ -98,17 +98,17 @@ public class Village {
 		this.vVillage = replacement;
 		this.nFlocks = this.vVillage.length;
 	}
-	
+
 	public Flock getTrojan(){
 		return this.vVillage[this.nFlocks-1];
 	}
 
 	public Flock[] getTrojan(int n){
 		Flock[] output = new Flock[n];
-		for(int i = 0; i < n; i++) output[i] = this.vVillage[this.nFlocks + i - n]; 
+		for(int i = 0; i < n; i++) output[i] = this.vVillage[this.nFlocks + i - n];
 		return output;
 	}
-	
+
 	public int getnFlocks(){
 		return this.nFlocks;
 	}
@@ -129,18 +129,18 @@ public class Village {
 		for(int i = 0; i < this.getnFlocks(); i++){
 			Flock curr = this.vVillage[i];
 			System.out.println("Flock size = " + curr.getSize());
-		}		
+		}
 	}
 
-//	Force adjustment to seasonal transmission parameters	
+//	Force adjustment to seasonal transmission parameters
 	public void updateSeasonTransAdj(double seasonAdj){
 		for(int i = 0; i < this.getnFlocks(); i++){
 			Flock curr = this.vVillage[i];
 			curr.setSeasonTransAdj(seasonAdj);
-		}		
+		}
 	}
 
-//	This is the principal method of this Class - drives the daily dynamics for each flock	
+//	This is the principal method of this Class - drives the daily dynamics for each flock
 	public void stepVillage(int day){
 		this.initDemogComps();
 		this.resetComps();
@@ -153,14 +153,14 @@ public class Village {
 			int[] buySell = curr.timeStep();
 //	Random ND sparks
 			if(this.ndvPool != null) curr.seedNDSpark(this.ndvPool, this.localTrans);
-//	Run ND in the			
+//	Run ND in the
 			curr.stepND();
 			if(curr.getInfected()) fInfected++;
 			int[] vaccPars = {0,0,0,0,0,0,0};
 				if(curr.getVaccinated()){
 //	Get deaths due to ND
 					int[] ndvDeaths = curr.getndDeaths();
-//	An array of output parameters					
+//	An array of output parameters
 					vaccPars[0] += ndvDeaths[0];
 					vaccPars[1] += buySell[0];
 					vaccPars[2] += buySell[1];
@@ -172,11 +172,11 @@ public class Village {
 //	Update buy-sell vectors and increment the counter
 			this.incrementComps(curr.getNDComps(), curr.getndDeaths(), fInfected, curr.getSize(), buySell, vaccPars);
 			this.updatePool(curr.getSalePool());
-			this.updateNDPools(curr.getNDVPool());			
+			this.updateNDPools(curr.getNDVPool());
 			this.updateDemogComps(curr);
-		}		
+		}
 		this.updateDemog();
-//	Incorporate the between flock transmission		
+//	Incorporate the between flock transmission
 		this.betweenFlockND();
 	}
 	public void seedNDVector(Vector newNDV){
@@ -217,7 +217,7 @@ public class Village {
 		ndCompartments[17] += vacc[3];
 		ndCompartments[18] += vacc[4];
 		ndCompartments[19] += vacc[5];
-		ndCompartments[20] += vacc[6];		
+		ndCompartments[20] += vacc[6];
 		ndCompartments[25] = this.nVaccinated;
 	}
 	public int[] getComps(){
@@ -242,15 +242,15 @@ public class Village {
 		for(int i = 0; i < ndvs.size(); i++){
 			this.ndViruses.addElement((NDInfection) ndvs.elementAt(i));
 		}
-	}	
+	}
 	public Vector getMarketPool(){
 		return this.marketPool;
 	}
-	
+
 	public void setMarketPool(Vector vPool){
 		this.marketPool = vPool;
 	}
-	
+
 	public void updateVillagePools(){
 		Collections.shuffle(this.marketPool);
 		for(int i = 0; i < this.vVillage.length; i++){
@@ -275,21 +275,21 @@ public class Village {
 //	Run the vaccination
 	public void startVaccinate(double prop, int day, double efficacy){
 		for(int i = 0; i < this.getnFlocks(); i++){
-			if(Math.random() < prop) this.vVillage[i].setVaccination(day, efficacy);			
+			if(Math.random() < prop) this.vVillage[i].setVaccination(day, efficacy);
 		}
 	}
 	public void adjHenCockRatio(double ratio){
 		for(int i = 0; i < this.getnFlocks(); i++){
-			this.vVillage[i].adjustHenCockRatio(ratio);			
+			this.vVillage[i].adjustHenCockRatio(ratio);
 		}
 	}
 
 	public void startVaccinationTrojan(int day, double efficacy){
-		this.vVillage[this.nFlocks - 1].setVaccination(day + this.vaccDay, efficacy);				
+		this.vVillage[this.nFlocks - 1].setVaccination(day + this.vaccDay, efficacy);
 	}
 
 	public void startVaccinationTrojans(int day, double efficacy, int nTrojans){
-		for(int i = nTrojans; i >=1; i--) this.vVillage[this.nFlocks - i].setVaccination(day + this.vaccDay, efficacy);				
+		for(int i = nTrojans; i >=1; i--) this.vVillage[this.nFlocks - i].setVaccination(day + this.vaccDay, efficacy);
 	}
 	public void forceND(NDInfection virus){
 		this.vVillage[this.nFlocks - 1].forceND(1, virus);
@@ -298,7 +298,7 @@ public class Village {
 		this.vVillage[this.nFlocks - 1].forceND(nSeed, virus);
 	}
 
-	
+
 	public void setVaccineDay(int day){
 		this.vaccDay = day;
 	}
@@ -320,7 +320,7 @@ public class Village {
 	public void resetNVaccinated(){
 		this.nVaccinated = 0;
 	}
-	
+
 	public void setElasticity(double elastic){
 		for(int i = 0; i < this.vVillage.length; i++){
 			Flock curr = this.vVillage[i];
